@@ -1,85 +1,202 @@
 module Panepon.Game where
 
 import Prelude
+
 import Control.Comonad (extend)
 import Data.List (List(..), (:))
 import Data.List.DoubleZipper (DoubleZipper(..), left, right, upper, lower)
 import Data.List.Zipper (Zipper(..))
 import Data.Maybe (Maybe(..))
-
-data Color = Red | Yellow | Green | LightBlue | Purple
-
-derive instance eqColor :: Eq Color
+import Data.Newtype (overF)
+import Data.Traversable (sequence)
+import Data.Unfoldable (replicate)
+import Effect (Effect)
+import Effect.Random (randomInt)
 
 data Panel
-  = Panel Color
+  = Heart
+  | Star
+  | Circle
+  | Diamond
+  | Triangle
   -- | Ojama Size?
 
 derive instance eqPanel :: Eq Panel
 
 type Field = DoubleZipper (Maybe Panel)
 
-neightbours :: Field -> Int
-neightbours (DoubleZipper (Zipper
+rows :: Int
+rows = 12
+
+cols :: Int
+cols = 6
+
+initHeight :: Int
+initHeight = 6
+
+init :: Effect Field
+init =
+  let
+    l1 = emptyLine
+    l2_6 = replicate 6 emptyLine
+  in do
+  l7 <- line7
+  l8 <- line8
+  l9_12 <- sequence $ replicate 4 fullLine
+  pure $ DoubleZipper $ Zipper Nil l1 $ l2_6 <> l7 : l8 : l9_12
+  where
+  panel = do
+    n <- randomInt 1 5
+    pure $ Just $ case n of
+      1 -> Heart
+      2 -> Star
+      3 -> Circle
+      4 -> Triangle
+      _ -> Diamond
+  emptyLine = Zipper Nil Nothing $ replicate (cols - 1) Nothing
+  fullLine = do
+    col1 <- panel
+    col2_6 <- sequence (replicate (cols - 1) panel)
+    pure $ Zipper Nil col1 col2_6
+  line7 = do
+    col4 <- panel
+    pure $ Zipper Nil Nothing $ Nothing : Nothing : col4 : Nothing : Nothing : Nil
+  line8 = do
+    col2_6 <- sequence (replicate (cols - 1) panel)
+    pure $ Zipper Nil Nothing col2_6
+
+neighbours :: Field -> Maybe { panel :: Panel, n :: Int }
+neighbours (DoubleZipper (Zipper
+    upperLines
+    (Zipper leftPanels it rightPanels)
+    lowerLines
+  )) = case it of
+    Nothing ->
+      Nothing
+    Just p ->
+      Just { panel: p, n:
+        ( case upperLines of
+          Cons (Zipper _ (Just p') _) _ ->
+            if p == p' then 1 else 0
+          _ -> 0
+        )
+        + ( case lowerLines of
+              Cons (Zipper _ (Just p') _) _ ->
+                if p == p' then 1 else 0
+              _ -> 0
+          )
+        + ( case leftPanels of
+              Cons (Just p') _ ->
+                if p == p' then 1 else 0
+              _ -> 0
+          )
+        + ( case rightPanels of
+              Cons (Just p') _ ->
+                if p == p' then 1 else 0
+              _ -> 0
+          )
+      }
+
+neighbours2 :: DoubleZipper (Maybe { panel :: Panel, n :: Int }) -> Int
+neighbours2 (DoubleZipper (Zipper
     _
     (Zipper _ Nothing _)
     _
   )) = 0
-neightbours dz@(DoubleZipper (Zipper
+neighbours2 (DoubleZipper (Zipper
     upperLines
-    (Zipper leftPanels (Just panel) rightPanels)
+    (Zipper leftPanels (Just { panel, n }) rightPanels)
     lowerLines
-  )) =
-    let
-      uppers = case upperLines of
-        Nil -> 0
-        Cons (Zipper _ p _) _ ->
-          if p == Just panel then
-            case upper dz of
-              Nothing -> 0
-              Just dz' ->
-                1 + (neightbours $ dz')
-          else
-            0
-      lowers = case lowerLines of
-        Nil -> 0
-        Cons (Zipper _ p _) _ ->
-          if p == Just panel then
-            case lower dz of
-              Nothing -> 0
-              Just dz' ->
-                1 + (neightbours $ dz')
-          else
-            0
-      lefts = case leftPanels of
-        Nil -> 0
-        Cons p _ ->
-          if p == Just panel then
-            case left dz of
-              Nothing -> 0
-              Just dz' ->
-                1 + (neightbours $ dz')
-          else
-            0
-      rights = case rightPanels of
-        Nil -> 0
-        Cons p _ ->
-          if p == Just panel then
-            case right dz of
-              Nothing -> 0
-              Just dz' ->
-                1 + (neightbours $ dz')
-          else
-            0
-    in
-      uppers + lowers + lefts + rights
+  )) = n
+    + ( case upperLines of
+          Cons (Zipper _ (Just { panel: p, n: m }) _) _ ->
+            if panel == p then m else 0
+          _ -> 0
+      )
+    + ( case lowerLines of
+          Cons (Zipper _ (Just { panel: p, n: m }) _) _ ->
+            if panel == p then m else 0
+          _ -> 0
+      )
+    + ( case leftPanels of
+          Cons (Just { panel: p, n: m }) _ ->
+            if panel == p then m else 0
+          _ -> 0
+      )
+    + ( case rightPanels of
+          Cons (Just { panel: p, n: m }) _ ->
+            if panel == p then m else 0
+          _ -> 0
+      )
+
+-- neighbours (DoubleZipper (Zipper
+--     _
+--     (Zipper _ Nothing _)
+--     _
+--   )) = 0
+-- neighbours dz@(DoubleZipper (Zipper
+--     upperLines
+--     (Zipper leftPanels (Just panel) rightPanels)
+--     lowerLines
+--   )) =
+--     let
+--       uppers = case upperLines of
+--         Nil -> 0
+--         Cons (Zipper _ p _) _ ->
+--           if p == Just panel then
+--             case upper dz of
+--               Nothing -> 0
+--               Just dz' ->
+--                 1 + (neighbours $ dz')
+--           else
+--             0
+--       lowers = case lowerLines of
+--         Nil -> 0
+--         Cons (Zipper _ p _) _ ->
+--           if p == Just panel then
+--             case lower dz of
+--               Nothing -> 0
+--               Just dz' ->
+--                 1 + (neighbours $ dz')
+--           else
+--             0
+--       lefts = case leftPanels of
+--         Nil -> 0
+--         Cons p _ ->
+--           if p == Just panel then
+--             case left dz of
+--               Nothing -> 0
+--               Just dz' ->
+--                 1 + (neighbours $ dz')
+--           else
+--             0
+--       rights = case rightPanels of
+--         Nil -> 0
+--         Cons p _ ->
+--           if p == Just panel then
+--             case right dz of
+--               Nothing -> 0
+--               Just dz' ->
+--                 1 + (neighbours $ dz')
+--           else
+--             0
+--     in
+--       uppers + lowers + lefts + rights
+
+-- eliminate :: Field -> Maybe Panel
+-- eliminate f@(DoubleZipper (Zipper
+--     _
+--     (Zipper _ panel _)
+--     _
+--   )) = if neighbours f >= 3 then Nothing else panel
 
 eliminate :: Field -> Maybe Panel
 eliminate f@(DoubleZipper (Zipper
     _
     (Zipper _ panel _)
     _
-  )) = if neightbours f >= 3 then Nothing else panel
+  )) =
+  if (neighbours2 $ extend neighbours f) >= 3 then Nothing else panel
 
 eliminateStep :: Field -> Field
 eliminateStep = extend eliminate

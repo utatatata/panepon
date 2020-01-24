@@ -11,6 +11,8 @@ You can edit this file as you like.
     , "lists"
     , "maybe"
     , "psci-support"
+    , "random"
+    , "unfoldable"
     ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

@@ -40,6 +40,9 @@ iterateRight z = z : case right z of
   Nothing -> Nil
   Just z' -> iterateRight z'
 
+toList :: forall a. Zipper a -> List a
+toList (Zipper ls c rs) = ls <> c : rs
+
 instance functorZipper :: Functor Zipper where
   map f (Zipper ls c rs) = Zipper (map f ls) (f c) (map f rs)
 

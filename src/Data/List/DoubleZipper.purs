@@ -37,6 +37,9 @@ iterateMapRight zz = zz : case traverse Z.right zz of
   Nothing -> Nil
   Just zz' -> iterateMapRight zz'
 
+toList :: forall a. DoubleZipper a -> List (List a)
+toList (DoubleZipper zz) = Z.toList $ map Z.toList $ zz
+
 instance extendDoubleZipper :: Extend DoubleZipper where
   extend f (DoubleZipper zz) = map f $ map DoubleZipper <<< DoubleZipper <<< roll $ roll zz
     where
