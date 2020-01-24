@@ -1,7 +1,6 @@
 module Data.List.Zipper where
 
 import Prelude
-
 import Control.Comonad (class Comonad)
 import Control.Extend (class Extend)
 import Data.Foldable (class Foldable, foldMap)
@@ -12,33 +11,42 @@ import Data.Monoid.Dual (Dual(..))
 import Data.Newtype (unwrap)
 import Data.Traversable (class Traversable, sequence, traverse)
 
-data Zipper a = Zipper (List a) a (List a)
+data Zipper a
+  = Zipper (List a) a (List a)
 
 left :: forall a. Zipper a -> Maybe (Zipper a)
-left (Zipper (l:ls) c rs) = Just $ Zipper ls l (c:rs)
+left (Zipper (l : ls) c rs) = Just $ Zipper ls l (c : rs)
+
 left _ = Nothing
 
 right :: forall a. Zipper a -> Maybe (Zipper a)
-right (Zipper ls c (r:rs)) = Just $ Zipper (c:ls) r rs
+right (Zipper ls c (r : rs)) = Just $ Zipper (c : ls) r rs
+
 right _ = Nothing
 
 first :: forall a. Zipper a -> Zipper a
 first z@(Zipper Nil _ _) = z
-first (Zipper (l:ls) c rs) = first $ Zipper ls l (c:rs)
+
+first (Zipper (l : ls) c rs) = first $ Zipper ls l (c : rs)
 
 last :: forall a. Zipper a -> Zipper a
 last z@(Zipper _ _ Nil) = z
-last (Zipper ls c (r:rs)) = last $ Zipper (c:ls) r rs
+
+last (Zipper ls c (r : rs)) = last $ Zipper (c : ls) r rs
 
 iterateLeft :: forall a. Zipper a -> List (Zipper a)
-iterateLeft z = z : case left z of
-  Nothing -> Nil
-  Just z' -> iterateLeft z'
+iterateLeft z =
+  z
+    : case left z of
+        Nothing -> Nil
+        Just z' -> iterateLeft z'
 
 iterateRight :: forall a. Zipper a -> List (Zipper a)
-iterateRight z = z : case right z of
-  Nothing -> Nil
-  Just z' -> iterateRight z'
+iterateRight z =
+  z
+    : case right z of
+        Nothing -> Nil
+        Just z' -> iterateRight z'
 
 toList :: forall a. Zipper a -> List a
 toList (Zipper ls c rs) = ls <> c : rs

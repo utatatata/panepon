@@ -1,7 +1,6 @@
 module Data.List.DoubleZipper where
 
 import Prelude
-
 import Control.Comonad (class Comonad, extract, duplicate)
 import Control.Extend (class Extend, extend)
 import Data.List (List(..), (:), drop)
@@ -10,7 +9,8 @@ import Data.List.Zipper as Z
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 
-newtype DoubleZipper a = DoubleZipper (Zipper (Zipper a))
+newtype DoubleZipper a
+  = DoubleZipper (Zipper (Zipper a))
 
 instance functorDoubleZipper :: Functor DoubleZipper where
   map f (DoubleZipper zz) = DoubleZipper (map (map f) zz)
@@ -28,14 +28,18 @@ right :: forall a. DoubleZipper a -> Maybe (DoubleZipper a)
 right (DoubleZipper zz) = map DoubleZipper $ traverse Z.right zz
 
 iterateMapLeft :: forall a. Zipper (Zipper a) -> List (Zipper (Zipper a))
-iterateMapLeft zz = zz : case traverse Z.left zz of
-  Nothing -> Nil
-  Just zz' -> iterateMapLeft zz'
+iterateMapLeft zz =
+  zz
+    : case traverse Z.left zz of
+        Nothing -> Nil
+        Just zz' -> iterateMapLeft zz'
 
 iterateMapRight :: forall a. Zipper (Zipper a) -> List (Zipper (Zipper a))
-iterateMapRight zz = zz : case traverse Z.right zz of
-  Nothing -> Nil
-  Just zz' -> iterateMapRight zz'
+iterateMapRight zz =
+  zz
+    : case traverse Z.right zz of
+        Nothing -> Nil
+        Just zz' -> iterateMapRight zz'
 
 toList :: forall a. DoubleZipper a -> List (List a)
 toList (DoubleZipper zz) = Z.toList $ map Z.toList $ zz
