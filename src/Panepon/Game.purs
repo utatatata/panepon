@@ -137,65 +137,6 @@ neighbours2 ( DoubleZipper
           _ -> 0
       )
 
--- neighbours (DoubleZipper (Zipper
---     _
---     (Zipper _ Nothing _)
---     _
---   )) = 0
--- neighbours dz@(DoubleZipper (Zipper
---     upperLines
---     (Zipper leftPanels (Just panel) rightPanels)
---     lowerLines
---   )) =
---     let
---       uppers = case upperLines of
---         Nil -> 0
---         Cons (Zipper _ p _) _ ->
---           if p == Just panel then
---             case upper dz of
---               Nothing -> 0
---               Just dz' ->
---                 1 + (neighbours $ dz')
---           else
---             0
---       lowers = case lowerLines of
---         Nil -> 0
---         Cons (Zipper _ p _) _ ->
---           if p == Just panel then
---             case lower dz of
---               Nothing -> 0
---               Just dz' ->
---                 1 + (neighbours $ dz')
---           else
---             0
---       lefts = case leftPanels of
---         Nil -> 0
---         Cons p _ ->
---           if p == Just panel then
---             case left dz of
---               Nothing -> 0
---               Just dz' ->
---                 1 + (neighbours $ dz')
---           else
---             0
---       rights = case rightPanels of
---         Nil -> 0
---         Cons p _ ->
---           if p == Just panel then
---             case right dz of
---               Nothing -> 0
---               Just dz' ->
---                 1 + (neighbours $ dz')
---           else
---             0
---     in
---       uppers + lowers + lefts + rights
--- eliminate :: Field -> Maybe Panel
--- eliminate f@(DoubleZipper (Zipper
---     _
---     (Zipper _ panel _)
---     _
---   )) = if neighbours f >= 3 then Nothing else panel
 eliminate :: Field -> Maybe Panel
 eliminate f@( DoubleZipper
     ( Zipper
