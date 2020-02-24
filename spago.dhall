@@ -8,10 +8,12 @@ You can edit this file as you like.
     , "control"
     , "effect"
     , "foldable-traversable"
+    , "halogen"
     , "lists"
     , "maybe"
     , "psci-support"
     , "random"
+    , "tuples"
     , "unfoldable"
     ]
 , packages = ./packages.dhall

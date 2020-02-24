@@ -1,11 +1,11 @@
-module Data.List.DoubleZipper where
+module Data.OldList.DoubleZipper where
 
 import Prelude
 import Control.Comonad (class Comonad, extract, duplicate)
 import Control.Extend (class Extend, extend)
 import Data.List (List(..), (:), drop)
-import Data.List.Zipper (Zipper(..))
-import Data.List.Zipper as Z
+import Data.OldList.Zipper (Zipper(..))
+import Data.OldList.Zipper as Z
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 

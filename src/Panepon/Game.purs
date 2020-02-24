@@ -3,8 +3,8 @@ module Panepon.Game where
 import Prelude
 import Control.Comonad (extend)
 import Data.List (List(..), (:))
-import Data.List.DoubleZipper (DoubleZipper(..), left, right, upper, lower)
-import Data.List.Zipper (Zipper(..))
+import Data.OldList.DoubleZipper (DoubleZipper(..), left, right, upper, lower)
+import Data.OldList.Zipper (Zipper(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (overF)
 import Data.Traversable (sequence)
